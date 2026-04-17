@@ -1,0 +1,7 @@
+hotdog_data = []
+with open("hotdogs.txt", 'r') as file:
+    for line in file:
+        items = line.strip().split(',')
+        hotdog_data.append(items)
+
+print("Done! Data loaded into a list.")
