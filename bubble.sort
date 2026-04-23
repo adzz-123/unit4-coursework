@@ -1,0 +1,68 @@
+# SECTION 1 - LOADING DATA
+def load_data(filename):
+    data_list = []
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                parts = line.strip().split(",")
+                if len(parts) == 7:
+                    record = {
+                        "v_id": parts[0],
+                        "v_name": parts[1],
+                        "year_week": parts[2],
+                        "vegan": int(parts[3]),
+                        "meat": int(parts[4]),
+                        "onions": float(parts[5]),
+                        "ketchup": float(parts[6])
+                    }
+                    data_list.append(record)
+        return data_list
+    except FileNotFoundError:
+        print(f"Error: The file {filename} was not found.")
+        return []
+
+# Load the file
+hotdog_data = load_data("hotdogs.txt")
+
+# PREPARATION: Adding total_sales for analysis
+for record in hotdog_data:
+    record["total_sales"] = record["vegan"] + record["meat"]
+
+# SECTION 2 - UNSORTED LINEAR SEARCH (By Sales)
+def linear_search_by_sales(data, target_sales):
+    for record in data:
+        if record["total_sales"] == target_sales:
+            return record
+    return None
+
+# SECTION 3 - BUBBLE SORT (Highest to Lowest)
+def bubble_sort_sales(data):
+    n = len(data)
+    # Create a copy so we don't mess up the original list order
+    sorted_list = data[:] 
+    for i in range(n):
+        for j in range(0, n - i - 1):
+            if sorted_list[j]["total_sales"] < sorted_list[j + 1]["total_sales"]:
+                sorted_list[j], sorted_list[j + 1] = sorted_list[j + 1], sorted_list[j]
+    return sorted_list
+
+# --- RUNNING THE CODE ---
+
+# Test Search
+print("--- Search Test ---")
+try:
+    search_val = int(input("Enter sales number to find: "))
+    result = linear_search_by_sales(hotdog_data, search_val)
+    if result:
+        print(f"Found: {result['v_name']} in week {result['year_week']}")
+    else:
+        print("No record found with those sales.")
+except ValueError:
+    print("Please enter a valid number.")
+
+# Test Sort
+print("\n--- Sorting Test (Top 3 Sellers) ---")
+sorted_hotdog_data = bubble_sort_sales(hotdog_data)
+for i in range(3):
+    if i < len(sorted_hotdog_data):
+        print(f"{i+1}. {sorted_hotdog_data[i]['v_name']}: {sorted_hotdog_data[i]['total_sales']} sales")
