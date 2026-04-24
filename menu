@@ -1,0 +1,132 @@
+## SECTION 1:  DATA LOADING
+
+def load_data(filename):
+    data_list = []
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                parts = line.strip().split(",")
+                if len(parts) == 7:
+                    try:
+                        record = {
+                            "v_id": parts[0], "v_name": parts[1], "year_week": parts[2],
+                            "vegan": int(parts[3]), "meat": int(parts[4]),
+                            "onions": float(parts[5]), "ketchup": float(parts[6])
+                        }
+                        if record["vegan"] >= 0 and record["meat"] >= 0:
+                            data_list.append(record)
+                    except ValueError:
+                        continue 
+        return data_list
+    except FileNotFoundError:
+        print("Error: hotdogs.txt not found.")
+        return []
+
+
+## SECTION 2: SEARCH ALGORITHMS
+ 
+
+# 1. Unsorted Linear Search
+def linear_search_unsorted(data, target):
+    for record in data:
+        if record["total_sales"] == target:
+            return record
+    return None
+
+# 2. Sorted Linear Search (Optimized by using early exit)
+def linear_search_sorted(data, target):
+    for record in data:
+        if record["total_sales"] == target:
+            return record
+        elif record["total_sales"] < target: # Stopping early
+            break
+    return None
+
+# 3. Binary Search 
+def binary_search(data, target):
+    low = 0
+    high = len(data) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if data[mid]["total_sales"] == target:
+            return data[mid]
+        elif data[mid]["total_sales"] < target:
+            high = mid - 1
+        else:
+            low = mid + 1
+    return None
+
+
+## SECTION 3: SORTING ALGORITHMS
+
+
+# 1. Bubble Sort
+def bubble_sort(data):
+    sorted_list = data[:]
+    n = len(sorted_list)
+    for i in range(n):
+        for j in range(0, n - i - 1):
+            if sorted_list[j]["total_sales"] < sorted_list[j+1]["total_sales"]:
+                sorted_list[j], sorted_list[j+1] = sorted_list[j+1], sorted_list[j]
+    return sorted_list
+
+# 2. Quick Sort
+def quick_sort(data):
+    if len(data) <= 1:
+        return data
+    pivot = data[len(data) // 2]["total_sales"]
+    left = [x for x in data if x["total_sales"] > pivot]
+    middle = [x for x in data if x["total_sales"] == pivot]
+    right = [x for x in data if x["total_sales"] < pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+
+## SECTION 4: MAIN PROGRAM & MENU
+
+
+# Initial Setup for sales
+hotdog_data = load_data("hotdogs.txt")
+for record in hotdog_data:
+    record["total_sales"] = record["vegan"] + record["meat"]
+
+# Pre-sorting for the optimized searches
+sorted_hotdog_data = bubble_sort(hotdog_data)
+
+def main_menu():
+    while True:
+        print("\n--- HOTDOG SALES SYSTEM ---")
+        print("1. Unsorted Linear Search")
+        print("2. Sorted Linear Search (Early Exit)")
+        print("3. Binary Search")
+        print("4. View Top 3 (Bubble Sort)")
+        print("5. View Top 3 (Quick Sort)")
+        print("6. Exit")
+        
+        choice = input("\nChoice: ")
+
+        if choice in ['1', '2', '3']:
+            try:
+                target = int(input("Enter sales number to find: "))
+                if choice == '1':
+                    res = linear_search_unsorted(hotdog_data, target)
+                elif choice == '2':
+                    res = linear_search_sorted(sorted_hotdog_data, target)
+                else:
+                    res = binary_search(sorted_hotdog_data, target)
+                
+                print(f"Found: {res['v_name']} ({res['year_week']})" if res else "Not found.")
+            except ValueError:
+                print("Invalid number.")
+
+        elif choice == '4':
+            print("Bubble Sorted Top 3:", [f"{x['v_name']}: {x['total_sales']}" for x in sorted_hotdog_data[:3]])
+
+        elif choice == '5':
+            qs_data = quick_sort(hotdog_data)
+            print("Quick Sorted Top 3:", [f"{x['v_name']}: {x['total_sales']}" for x in qs_data[:3]])
+
+        elif choice == '6':
+            break
+
+if __name__ == "__main__":
+    main_menu()
