@@ -1,5 +1,8 @@
-## SECTION 1:  DATA LOADING
+import time
 
+# =========================================================
+# SECTION 1: ROBUST DATA LOADING
+# =========================================================
 def load_data(filename):
     data_list = []
     try:
@@ -22,27 +25,24 @@ def load_data(filename):
         print("Error: hotdogs.txt not found.")
         return []
 
+# =========================================================
+# SECTION 2: SEARCH ALGORITHMS
+# =========================================================
 
-## SECTION 2: SEARCH ALGORITHMS
- 
-
-# 1. Unsorted Linear Search
 def linear_search_unsorted(data, target):
     for record in data:
         if record["total_sales"] == target:
             return record
     return None
 
-# 2. Sorted Linear Search (Optimized by using early exit)
 def linear_search_sorted(data, target):
     for record in data:
         if record["total_sales"] == target:
             return record
-        elif record["total_sales"] < target: # Stopping early
+        elif record["total_sales"] < target: 
             break
     return None
 
-# 3. Binary Search 
 def binary_search(data, target):
     low = 0
     high = len(data) - 1
@@ -56,11 +56,10 @@ def binary_search(data, target):
             low = mid + 1
     return None
 
+# =========================================================
+# SECTION 3: SORTING ALGORITHMS
+# =========================================================
 
-## SECTION 3: SORTING ALGORITHMS
-
-
-# 1. Bubble Sort
 def bubble_sort(data):
     sorted_list = data[:]
     n = len(sorted_list)
@@ -70,7 +69,6 @@ def bubble_sort(data):
                 sorted_list[j], sorted_list[j+1] = sorted_list[j+1], sorted_list[j]
     return sorted_list
 
-# 2. Quick Sort
 def quick_sort(data):
     if len(data) <= 1:
         return data
@@ -80,53 +78,178 @@ def quick_sort(data):
     right = [x for x in data if x["total_sales"] < pivot]
     return quick_sort(left) + middle + quick_sort(right)
 
+# =========================================================
+# SECTION 4: MAIN PROGRAM & MENU WITH TIMER
+# =========================================================
 
-## SECTION 4: MAIN PROGRAM & MENU
-
-
-# Initial Setup for sales
+# Initial Setup
 hotdog_data = load_data("hotdogs.txt")
 for record in hotdog_data:
     record["total_sales"] = record["vegan"] + record["meat"]
 
-# Pre-sorting for the optimized searches
+# Pre-prepare sorted list for searches
 sorted_hotdog_data = bubble_sort(hotdog_data)
 
 def main_menu():
+    
+    bubble_done = False
+    quick_done = False
+    
     while True:
-        print("\n--- HOTDOG SALES SYSTEM ---")
+        print("\n" + "="*30)
+        print("   HOTDOG SALES ANALYZER")
+        print("="*30)
         print("1. Unsorted Linear Search")
         print("2. Sorted Linear Search (Early Exit)")
         print("3. Binary Search")
-        print("4. View Top 3 (Bubble Sort)")
-        print("5. View Top 3 (Quick Sort)")
-        print("6. Exit")
+        print("4. Bubble Sort (Show Top 3)")
+        print("5. Quick Sort (Show Top 3)")
+        print("6. Compare Sorting times(Bubble sort and Quick sort)")
+        print("7. Compare Searching times(Unsorted/Sorted linear search, Binary search)")
+        print("8. Exit")
         
-        choice = input("\nChoice: ")
+        choice = input("\nSelect an option: ")
 
         if choice in ['1', '2', '3']:
             try:
                 target = int(input("Enter sales number to find: "))
+                
+                # TIMING THE SEARCH
+                start = time.perf_counter()
                 if choice == '1':
                     res = linear_search_unsorted(hotdog_data, target)
                 elif choice == '2':
                     res = linear_search_sorted(sorted_hotdog_data, target)
                 else:
                     res = binary_search(sorted_hotdog_data, target)
+                end = time.perf_counter()
                 
-                print(f"Found: {res['v_name']} ({res['year_week']})" if res else "Not found.")
+                print(f"\nResult: {res['v_name']} ({res['year_week']})" if res else "\nResult: Not found.")
+                print(f"Execution Time: {end - start:.10f} seconds")
+                
             except ValueError:
-                print("Invalid number.")
+                print("Invalid input. Please enter a number.")
 
         elif choice == '4':
-            print("Bubble Sorted Top 3:", [f"{x['v_name']}: {x['total_sales']}" for x in sorted_hotdog_data[:3]])
+            # TIMING BUBBLE SORT
+            start = time.perf_counter()
+            bubble_res = bubble_sort(hotdog_data)
+            end = time.perf_counter()
+            duration = end - start
+            
+            print("\n--- Bubble Sort Top 3 ---")
+            for x in bubble_res[:3]:
+                print(f"{x['v_name']} (Date) {x['year_week']}: {x['total_sales']} sales")
+            print(f"Sort Time: {duration:.10f} seconds")
+            bubble_done = True
+            print("Bubble sort complete")
 
         elif choice == '5':
-            qs_data = quick_sort(hotdog_data)
-            print("Quick Sorted Top 3:", [f"{x['v_name']}: {x['total_sales']}" for x in qs_data[:3]])
+            # TIMING QUICK SORT
+            start = time.perf_counter()
+            quick_res = quick_sort(hotdog_data)
+            end = time.perf_counter()
+            duration = end - start
+            
+            print("\n--- Quick Sort Top 3 ---")
+            for x in quick_res[:3]:
+                print(f"{x['v_name']}: {x['year_week']}(Date): {x['total_sales']} sales")
+            print(f"Sort Time: {duration:.10f} seconds")
+            quick_done = True
+            print("Quick sort complete")
 
         elif choice == '6':
+           #Checks if quick/bubble have been completed
+           if not bubble_done or not quick_done:
+               print("\n ERROR: Please choose BOTH option 4 and 5 before comparing speeds")
+           else:
+               # COMPARE SORT SPEEDS
+            print("\n" + "="*40)
+            print("    PERFORMANCE RACE: BUBBLE VS QUICK")
+            
+            #bubble sort
+            start_b = time.perf_counter()
+            bubble_sort(hotdog_data)
+            end_b = time.perf_counter()
+            t_bubble= end_b - start_b
+            
+            #quick sort
+            start_q = time.perf_counter()
+            quick_sort(hotdog_data)
+            end_q = time.perf_counter()
+            t_quick = end_q - start_q
+            
+            #Scoreboard
+            print(f"Bubble Sort Time: {t_bubble:.10f}s")
+            print(f"Quick Sort Time:  {t_quick:.10f}s")
+            print("-" * 40)
+            
+            #winner
+            if t_quick < t_bubble:
+                diff = t_bubble - t_quick
+                print(f"WINNER: Quick Sort is faster by {diff:.10f}s")
+                print("Note: Quick Sort dominates as data scales up.")
+            elif t_bubble < t_quick:
+                diff = t_quick - t_bubble
+                print(f"WINNER: Bubble Sort is faster by {diff:.10f}s")
+                print("Note: For tiny lists, simpler logic can sometimes win.")
+            else:
+                print("RESULT: It's a dead heat (tie)!")
+            print("="*40)
+            
+        elif choice == '7':
+            
+            try:
+                target = int(input("\n Enter sales number for the speed test: "))
+                print("\n" + "="*40)
+                print(f" SEARCH RACE: TARGET = {target}")
+                print("="*40)
+                # 1. Time Unsorted Linear Search
+                s1 = time.perf_counter()
+                linear_search_unsorted(hotdog_data, target)
+                e1 = time.perf_counter()
+                t_linear_un = e1 - s1
+
+                # 2. Time Sorted Linear Search
+                s2 = time.perf_counter()
+                linear_search_sorted(sorted_hotdog_data, target)
+                e2 = time.perf_counter()
+                t_linear_so = e2 - s2
+
+                # 3. Time Binary Search
+                s3 = time.perf_counter()
+                binary_search(sorted_hotdog_data, target)
+                e3 = time.perf_counter()
+                t_binary = e3 - s3
+
+                # --- RESULTS ---
+                print(f"Unsorted Linear: {t_linear_un:.10f}s")
+                print(f"Sorted Linear:   {t_linear_so:.10f}s")
+                print(f"Binary Search:   {t_binary:.10f}s")
+                print("-" * 40)
+
+                # --- THE ANALYSIS ---
+                fastest = min(t_linear_un, t_linear_so, t_binary)
+                if fastest == t_binary:
+                    print("WINNER: Binary Search!!")
+                    print("Note: Binary search is exponentially faster on sorted data.")
+                else:
+                    print("WINNER: Linear Search")
+                    print("Note: On very small lists, Linear can sometimes keep up.")
+                print("="*40)
+
+            except ValueError:
+                print("Invalid input. Please enter a whole number.")
+                
+            
+            #COMPARE SEARCH SPEEDS
+            
+            
+        elif choice == '8':
+            print("\nProgram ending..") 
             break
+    
+        
 
 if __name__ == "__main__":
     main_menu()
