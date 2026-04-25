@@ -16,14 +16,16 @@ def load_data(filename):
                             "vegan": int(parts[3]), "meat": int(parts[4]),
                             "onions": float(parts[5]), "ketchup": float(parts[6])
                         }
-                        if record["vegan"] >= 0 and record["meat"] >= 0:
-                            data_list.append(record)
+                        data_list.append(record)
                     except ValueError:
                         continue 
         return data_list
     except FileNotFoundError:
         print("Error: hotdogs.txt not found.")
         return []
+
+
+
 
 # =========================================================
 # SECTION 2: SEARCH ALGORITHMS
@@ -79,13 +81,53 @@ def quick_sort(data):
     return quick_sort(left) + middle + quick_sort(right)
 
 # =========================================================
-# SECTION 4: MAIN PROGRAM & MENU WITH TIMER
+# SECTION 4: MAIN PROGRAM & MENU WITH TIMER/VALIDATION
 # =========================================================
 
 # Initial Setup
 hotdog_data = load_data("hotdogs.txt")
 for record in hotdog_data:
     record["total_sales"] = record["vegan"] + record["meat"]
+
+##DATA VALIDATION
+def validate_data(data):
+    total_records = len(data)
+    valid_count = 0
+    
+    print("-"*30)
+    print("DATA VALIDATION Check")
+    print("-"*30)
+    
+    for record in data:
+        is_valid = True
+        
+        # Check 1: No negative sales
+        if record["vegan"] < 0 or record["meat"] < 0:
+            print(f"[!] ERROR: Negative sales for {record['v_name']} (Week {record['year_week']})")
+            is_valid = False
+            
+        # Check 2: Total sales math consistency
+        # This ensures total_sales actually matches the sum of its parts
+        expected_total = record["vegan"] + record["meat"]
+        if record["total_sales"] != expected_total:
+            print(f"[!] ERROR: Math mismatch for {record['v_name']} (Week {record['year_week']})")
+            is_valid = False
+            
+        if is_valid:
+            valid_count += 1
+                
+    print(f"\n[SYSTEM]: Data Validation Complete.")
+    print(f"Results: {valid_count} out of {total_records} records are valid.")
+    
+    if valid_count == total_records:
+        print("Status: SUCCESS - Dataset is healthy.")
+    else:
+        print(f"Status: WARNING - {total_records - valid_count} record(s) flagged for review.")
+    print("-" * 30)
+validate_data(hotdog_data)
+    
+
+
 
 # Pre-prepare sorted list for searches
 sorted_hotdog_data = bubble_sort(hotdog_data)
@@ -106,7 +148,8 @@ def main_menu():
         print("5. Quick Sort (Show Top 3)")
         print("6. Compare Sorting times(Bubble sort and Quick sort)")
         print("7. Compare Searching times(Unsorted/Sorted linear search, Binary search)")
-        print("8. Exit")
+        print("8. Open ingredient sub-menu")
+        print("9. Exit")
         
         choice = input("\nSelect an option: ")
 
@@ -242,10 +285,49 @@ def main_menu():
                 print("Invalid input. Please enter a whole number.")
                 
             
-            #COMPARE SEARCH SPEEDS
             
             
         elif choice == '8':
+            ##SUB MENU
+            while True:
+                print("\n"+ "-"*30)
+                print(" INGREDIENT ANALYSIS")
+                print("\n"+ "-"*30)
+                print("1. Highest Meat Sales")
+                print("2. Highest Vegan Sales")
+                print("3. Ketchup Usage Stats")
+                print("4. Onion Usage Stats")
+                print("5. Return to Main Menu")
+                
+                sub_choice = input("\n Select an ingredient: ")
+                
+                if sub_choice == '1':
+                    top_meat = max(hotdog_data, key=lambda x: x['meat'])
+                    print(f"\nMEAT KING: {top_meat['v_name']} sold {top_meat['meat']} units at {top_meat['year_week'][:4]}, Week {top_meat['year_week'][4:]}")
+                
+                elif sub_choice == '2':
+                    top_vegan = max(hotdog_data, key=lambda x: x['vegan'])
+                    print(f"\nVEGAN KING: {top_vegan['v_name']} sold {top_vegan['vegan']} units at {top_vegan['year_week'][:4]}, Week {top_vegan['year_week'][4:]}")
+                
+                elif sub_choice == '3':
+                    # Calculate top ketchup usage
+                    top_k = max(hotdog_data, key=lambda x: x['ketchup'])
+                    print(f"\nKETCHUP KING: {top_k['v_name']} used {top_k['ketchup']} liters of ketchup at {top_k['year_week'][:4]}, Week {top_k['year_week'][4:]}")
+                
+                elif sub_choice == '4':
+                    # Find who used the most onions
+                    top_onion = max(hotdog_data, key=lambda x: x['onions'])
+                    print(f"\nONION KING: {top_onion['v_name']} used {top_onion['onions']}kg of onions at {top_onion['year_week'][:4]}, Week {top_onion['year_week'][4:]}")
+                
+                elif sub_choice == '5':
+                    print("Returning to Main Menu...")
+                    break # This exits the SUB-LOOP only
+                
+                else:
+                    print("Invalid selection.")
+        
+        
+        elif choice == '9':
             print("\nProgram ending..") 
             break
     
