@@ -6,11 +6,16 @@ import time
 def load_data(filename):
     data_list = []
     try:
+        # Opnes the file 
         with open(filename, "r") as file:
             for line in file:
+                # Cleans up the line and breaks it into a list based on commas
                 parts = line.strip().split(",")
+                
+                # Only processes lines with exactly 7 items to avoid indexing errors
                 if len(parts) == 7:
                     try:
+                        # Transform raw text into a structured dictionary with correct data types
                         record = {
                             "v_id": parts[0], "v_name": parts[1], "year_week": parts[2],
                             "vegan": int(parts[3]), "meat": int(parts[4]),
@@ -18,11 +23,14 @@ def load_data(filename):
                         }
                         data_list.append(record)
                     except ValueError:
+                        # Skip the line if any number conversion fails (like text in a number field)
                         continue 
         return data_list
     except FileNotFoundError:
+        # I provide a clear warning if the source file is missing
         print("Error: hotdogs.txt not found.")
         return []
+
 
 
 
@@ -32,12 +40,14 @@ def load_data(filename):
 # =========================================================
 
 def linear_search_unsorted(data, target):
+    # This checks every record one by one from the start
     for record in data:
         if record["total_sales"] == target:
             return record
     return None
 
 def linear_search_sorted(data, target):
+    # This searches a sorted list and stops early if the numbers get too low
     for record in data:
         if record["total_sales"] == target:
             return record
@@ -46,6 +56,7 @@ def linear_search_sorted(data, target):
     return None
 
 def binary_search(data, target):
+    # This splits the sorted list in half to find the target very fast
     low = 0
     high = len(data) - 1
     while low <= high:
@@ -63,6 +74,7 @@ def binary_search(data, target):
 # =========================================================
 
 def bubble_sort(data):
+    # This sorts by swapping neighbors until the biggest is at the top
     sorted_list = data[:]
     n = len(sorted_list)
     for i in range(n):
@@ -72,6 +84,7 @@ def bubble_sort(data):
     return sorted_list
 
 def quick_sort(data):
+    # This picks a middle point and sorts items into 'higher' or 'lower' piles
     if len(data) <= 1:
         return data
     pivot = data[len(data) // 2]["total_sales"]
@@ -91,47 +104,52 @@ for record in hotdog_data:
 
 ##DATA VALIDATION
 def validate_data(data):
-    total_records = len(data)
     valid_count = 0
-    
-    print("-"*30)
-    print("DATA VALIDATION Check")
-    print("-"*30)
     
     for record in data:
         is_valid = True
         
-        # Check 1: No negative sales
-        if record["vegan"] < 0 or record["meat"] < 0:
-            print(f"[!] ERROR: Negative sales for {record['v_name']} (Week {record['year_week']})")
+        # This checks if ID is uppercase and follows the LL_DDD format (length 6)
+        v_id = record["v_id"]
+        if not v_id.isupper() or len(v_id) != 6 or v_id[2] != "_":
             is_valid = False
-            
-        # Check 2: Total sales math consistency
-        # This ensures total_sales actually matches the sum of its parts
-        expected_total = record["vegan"] + record["meat"]
-        if record["total_sales"] != expected_total:
-            print(f"[!] ERROR: Math mismatch for {record['v_name']} (Week {record['year_week']})")
+
+        # This ensures the name length is within the 2-25 character limit
+        if not (2 <= len(record["v_name"]) <= 25):
             is_valid = False
-            
+
+        # This validates the YearWeek format and ensure the week is between 1 and 52
+        yw = record["year_week"]
+        if len(yw) != 6 or not (1 <= int(yw[4:]) <= 52):
+            is_valid = False
+
+        # This checks if hotdog counts are divisible by 10 using the modulo (%) operator
+        if record["vegan"] % 10 != 0 or record["meat"] % 10 != 0:
+            is_valid = False
+
+        # This verifies onions are in 0.5kg increments
+        if record["onions"] % 0.5 != 0:
+            is_valid = False
+
+        # This confirms ketchup is an integer between 1 and 4
+        # (Note: int(x) == x checks if the float is actually a whole number)
+        k = record["ketchup"]
+        if not (1 <= k <= 4) or k != int(k):
+            is_valid = False
+
         if is_valid:
             valid_count += 1
                 
-    print(f"\n[SYSTEM]: Data Validation Complete.")
-    print(f"Results: {valid_count} out of {total_records} records are valid.")
-    
-    if valid_count == total_records:
-        print("Status: SUCCESS - Dataset is healthy.")
-    else:
-        print(f"Status: WARNING - {total_records - valid_count} record(s) flagged for review.")
-    print("-" * 30)
+    print(f"Results: {valid_count} / {len(data)} valid.")
+    return f"{valid_count} / {len(data)} valid"
 validate_data(hotdog_data)
-    
 
 
 
 # Pre-prepare sorted list for searches
 sorted_hotdog_data = bubble_sort(hotdog_data)
 
+##MENU
 def main_menu():
     
     bubble_done = False
@@ -208,7 +226,7 @@ def main_menu():
            else:
                # COMPARE SORT SPEEDS
             print("\n" + "="*40)
-            print("    PERFORMANCE RACE: BUBBLE VS QUICK")
+            print("PERFORMANCE RACE: BUBBLE VS QUICK")
             
             #bubble sort
             start_b = time.perf_counter()
@@ -335,3 +353,51 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
+# =========================================================
+# SECTION 5: SAVE RESULTS TO FILE
+# =========================================================
+def save_results(filename, analysis_data, performance_stats):
+    try:
+        # I open the file in "w" (write) mode to start a fresh report
+        with open(filename, "w") as file:
+            file.write("=== HOTDOG VENDOR SYSTEM REPORT ===\n")
+            file.write("-" * 35 + "\n")
+            
+            # I write the performance data first
+            file.write("PERFORMANCE SUMMARY:\n")
+            for key, value in performance_stats.items():
+                file.write(f"- {key}: {value}\n")
+            
+            file.write("\nANALYSIS RESULTS:\n")
+            # I loop through the list to write each result on its own line
+            for item in analysis_data:
+                file.write(f"{item}\n")
+                
+            file.write("-" * 35 + "\n")
+            # I use ctime to stamp exactly when I made this report
+            file.write(f"Report Generated: {time.ctime()}\n")
+        return True
+    except Exception as e:
+        print(f"Error saving file: {e}")
+        return False
+
+
+# 1. This runs validation and capture the returned string
+validation_report = validate_data(hotdog_data)
+
+# 2. Measures the sort time
+start_time = time.perf_counter()
+bubble_sort(hotdog_data)
+end_time = time.perf_counter()
+duration_str = f"{end_time - start_time:.6f}s"
+
+# 3. Organizes the data into the dictionary and list
+stats_to_save = {"Sort Time": duration_str}
+analysis_results = [
+    f"Validation Status: {validation_report}",
+    f"Total Records: {len(hotdog_data)}"
+]
+
+# 4. Execute the save
+save_results("results.txt", analysis_results, stats_to_save)
