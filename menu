@@ -31,7 +31,14 @@ def load_data(filename):
         print("Error: hotdogs.txt not found.")
         return []
 
+hotdog_data = load_data("hotdogs.txt")
 
+print("--- HOTDOG VENDOR DATA ---")
+for record in hotdog_data:
+    print(record)
+
+# Print total count for verification
+print(f"\nTotal records loaded: {len(hotdog_data)}")
 
 
 
@@ -141,7 +148,7 @@ def validate_data(data):
         if is_valid:
             valid_count += 1
                 
-    print(f"DATA VALIDATION \nResults: {valid_count} / {len(data)} valid.")
+    print(f"Results: {valid_count} / {len(data)} valid.")
     return f"{valid_count} / {len(data)} valid"
 validate_data(hotdog_data)
 
@@ -149,7 +156,6 @@ validate_data(hotdog_data)
 
 # Pre-prepare sorted list for searches
 sorted_hotdog_data = bubble_sort(hotdog_data)
-
 ##MENU
 def main_menu():
     
@@ -190,7 +196,7 @@ def main_menu():
                 print(f"Execution Time: {end - start:.10f} seconds")
                 
             except ValueError:
-                print("Invalid input. Please enter a number.")
+                print("Invalid input. Please enter a valid integer.")
 
         elif choice == '4':
             # TIMING BUBBLE SORT
@@ -358,6 +364,7 @@ if __name__ == "__main__":
 # =========================================================
 # SECTION 5: SAVE RESULTS TO FILE
 # =========================================================
+
 def save_results(filename, analysis_data, performance_stats):
     try:
         # I open the file in "w" (write) mode to start a fresh report
@@ -382,22 +389,18 @@ def save_results(filename, analysis_data, performance_stats):
     except Exception as e:
         print(f"Error saving file: {e}")
         return False
-
-
 # 1. This runs validation and capture the returned string
-
-
+validation_report = validate_data(hotdog_data)
 # 2. Measures the sort time
 start_time = time.perf_counter()
 bubble_sort(hotdog_data)
 end_time = time.perf_counter()
 duration_str = f"{end_time - start_time:.6f}s"
-
 # 3. Organizes the data into the dictionary and list
 stats_to_save = {"Sort Time": duration_str}
 analysis_results = [
+    f"Validation Status: {validation_report}",
     f"Total Records: {len(hotdog_data)}"
 ]
-
 # 4. Execute the save
 save_results("results.txt", analysis_results, stats_to_save)
