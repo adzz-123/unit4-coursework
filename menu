@@ -33,9 +33,6 @@ def load_data(filename):
 
 hotdog_data = load_data("hotdogs.txt")
 
-print("--- HOTDOG VENDOR DATA ---")
-for record in hotdog_data:
-    print(record)
 
 # Print total count for verification
 print(f"\nTotal records loaded: {len(hotdog_data)}")
